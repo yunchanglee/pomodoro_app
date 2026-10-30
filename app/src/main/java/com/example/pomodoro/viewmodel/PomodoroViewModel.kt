@@ -10,6 +10,7 @@ import com.example.pomodoro.model.PomodoroUiState
 import com.example.pomodoro.model.SessionType
 import com.example.pomodoro.model.TimerRunState
 import com.example.pomodoro.model.VibrationIntensity
+import com.example.pomodoro.service.PomodoroTimerService
 import com.example.pomodoro.util.VibrationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,6 +32,34 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
     private var timerJob: Job? = null
     private var repeatingVibrationJob: Job? = null
     private var lastTickedDialMinute: Int = -1
+    private var isAppInBackground: Boolean = false
+    private var lastNotifiedTotalSeconds: Int = -1
+
+    /**
+     * 앱이 백그라운드로 전환되거나 포그라운드로 복귀할 때 호출되어
+     * 스마트폰 상단 상태 표시줄(Status Bar) 아이콘을 표시/해제합니다.
+     */
+    fun onAppBackgroundStateChanged(inBackground: Boolean) {
+        isAppInBackground = inBackground
+        if (inBackground) {
+            val state = _uiState.value
+            lastNotifiedTotalSeconds = state.displayMinutes * 60 + state.displaySeconds
+            PomodoroTimerService.showOrUpdateBackgroundStatus(getApplication(), state)
+        } else {
+            lastNotifiedTotalSeconds = -1
+            PomodoroTimerService.hideBackgroundStatus(getApplication())
+        }
+    }
+
+    private fun syncBackgroundStatusIfNeeded(force: Boolean = false) {
+        if (!isAppInBackground) return
+        val state = _uiState.value
+        val currentTotalSeconds = state.displayMinutes * 60 + state.displaySeconds
+        if (force || currentTotalSeconds != lastNotifiedTotalSeconds) {
+            lastNotifiedTotalSeconds = currentTotalSeconds
+            PomodoroTimerService.showOrUpdateBackgroundStatus(getApplication(), state)
+        }
+    }
 
     private fun createInitialState(): PomodoroUiState {
         val loadedSettings = loadSettings()
@@ -110,6 +139,7 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
                 val now = SystemClock.elapsedRealtime()
                 val left = (targetEndRealtime - now).coerceAtLeast(0L)
                 _uiState.update { it.copy(remainingMillis = left) }
+                syncBackgroundStatusIfNeeded(force = false)
 
                 if (left <= 0L) {
                     onTimerReachedZero()
@@ -286,6 +316,7 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
                     isVibrationRippleActive = true
                 )
             }
+            syncBackgroundStatusIfNeeded(force = true)
             startRepeatingCompletionVibration(completedSession)
         }
     }
@@ -350,6 +381,7 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
                 isVibrationRippleActive = false
             )
         }
+        syncBackgroundStatusIfNeeded(force = true)
 
         if (autoStart) {
             startCountdown()
@@ -450,5 +482,10 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
                 totalSessionMillis = if (shouldSyncRemaining) syncedMillis else it.totalSessionMillis
             )
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        PomodoroTimerService.hideBackgroundStatus(getApplication())
     }
 }

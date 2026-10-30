@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 상단 타이머 크라운 버튼 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,1h6v2H9V1z" />
+    <!-- 외곽 타이머 베젤 링 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M19.03,7.39l1.42,-1.42c-0.43,-0.51 -0.9,-0.99 -1.41,-1.41l-1.42,1.42C16.07,4.74 14.12,4 12,4c-4.97,0 -9,4.03 -9,9s4.02,9 9,9s9,-4.03 9,-9C21,10.88 20.26,8.93 19.03,7.39zM12,20c-3.87,0 -7,-3.13 -7,-7s3.13,-7 7,-7s7,3.13 7,7S15.87,20 12,20z" />
+    <!-- 내부 포모도로 부채꼴 게이지 (60분 다이얼 상징) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,8v5l4.2,2.5c0.5,-0.75 0.8,-1.6 0.8,-2.5C17,10.24 14.76,8 12,8z" />
+</vector>

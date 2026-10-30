@@ -147,6 +147,12 @@ flowchart TB
 * **진동 강도 3단계 설정 및 실시간 프리뷰:**
   * `Soft (진폭 110)` / `Standard (진폭 190)` / `Strong (진폭 255)` 선택 시 즉시 해당 진동 파형과 아날로그 다이얼 충격파 모션을 시연합니다.
 
+### 4.5 백그라운드 전환 시 상단 상태 표시줄 아이콘 (`PomodoroTimerService.kt` & `ic_stat_pomodoro.xml`)
+* **상단 상태 표시줄(Status Bar) 아이콘 표시:**
+  * `MainActivity.onStop()` (화면 회전 제외) 시점에 `PomodoroViewModel.onAppBackgroundStateChanged(true)`가 호출되어 `PomodoroTimerService` 포그라운드 서비스 및 상단 알림을 시작합니다.
+  * 안드로이드 상태 표시줄 규격(24dp 단색 화이트 실루엣 + 투명 배경)에 맞춘 `@drawable/ic_stat_pomodoro` 아이콘이 스마트폰 상단 바에 표시되며, 실시간 남은 시간(`MM:SS`)과 세션 상태를 보여줍니다.
+  * 알림 탭 시 `SingleTop` 인텐트로 즉시 앱으로 복귀하며, `MainActivity.onStart()` 복귀 시 상단 아이콘이 자동으로 해제됩니다.
+
 ---
 
 ## 🚀 5. 빌드 및 APK 생성/설치 가이드
