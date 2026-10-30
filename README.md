@@ -137,6 +137,8 @@ flowchart TB
 * **집중 완료 후 자동 휴식 전환 (`autoStartBreak`):**
   * `autoStartBreak == true`: 집중 타이머가 `00:00`에 도달하면 종료 진동 1사이클과 동심원 충격파 애니메이션을 `1.3초`간 재생한 뒤, 자동으로 짧은 휴식(또는 지정된 세션 주기 도달 시 긴 휴식)으로 전환하여 즉시 카운트다운을 시작합니다.
   * `autoStartBreak == false`: `TimerRunState.COMPLETED_WAITING` 상태로 전환되며, 사용자가 `[휴식 시작]` 버튼을 누르거나 화면을 터치할 때까지(최대 5회) 주기적으로 종료 진동과 파동 효과를 반복합니다.
+* **포모도로 집중(Focus) 사이클 초기화 (`resetFocusCycle` / `resetToFirstFocusCycle`):**
+  * 상단 세션 표시 영역(`FOCUS #1/4` 및 사이클 도트 옆)의 `[Focus 초기화]` 칩 버튼 또는 설정 바텀시트 내 `[Focus 초기화]` 버튼을 탭하면, 진행 중인 타이머/진동을 즉시 중단하고 `SessionType.FOCUS`, `currentCycleIndex = 1`, `completedFocusSessions = 0`, `TimerRunState.READY` 상태로 초기화합니다.
 
 ### 4.4 타이머 종료 진동 알림 엔진 (`VibrationHelper.kt`)
 * Android API 버전에 맞춰 `VibratorManager` (API 31+) 및 `Vibrator`를 분기 처리하고, `VibrationEffect.createWaveform(timings, amplitudes, -1)`을 사용해 세션별 맞춤형 진동 파형을 생성합니다:

@@ -121,6 +121,24 @@ data class PomodoroUiState(
         get() = runState == TimerRunState.RUNNING &&
             remainingMillis in 1L..10_000L
 
+    /**
+     * 포모도로 집중 사이클 초기화:
+     * 현재 진행 상태와 관계없이 첫 번째 집중 세션(FOCUS #1) 대기(READY) 상태로 되돌리고
+     * 누적 완료 집중 횟수(completedFocusSessions)를 0으로 초기화합니다.
+     */
+    fun resetToFirstFocusCycle(): PomodoroUiState {
+        val focusMillis = settings.durationMinutesFor(SessionType.FOCUS) * 60 * 1000L
+        return copy(
+            currentSession = SessionType.FOCUS,
+            runState = TimerRunState.READY,
+            remainingMillis = focusMillis,
+            totalSessionMillis = focusMillis,
+            currentCycleIndex = 1,
+            completedFocusSessions = 0,
+            isVibrationRippleActive = false
+        )
+    }
+
     companion object {
         const val MAX_ANALOG_MINUTES = 60
         const val MAX_ANALOG_MILLIS = MAX_ANALOG_MINUTES * 60 * 1000L

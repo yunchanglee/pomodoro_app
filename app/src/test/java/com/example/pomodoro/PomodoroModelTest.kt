@@ -3,7 +3,9 @@ package com.example.pomodoro
 import com.example.pomodoro.model.PomodoroSettings
 import com.example.pomodoro.model.PomodoroUiState
 import com.example.pomodoro.model.SessionType
+import com.example.pomodoro.model.TimerRunState
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class PomodoroModelTest {
@@ -35,5 +37,29 @@ class PomodoroModelTest {
         )
         assertEquals(24, state.displayMinutes)
         assertEquals(59, state.displaySeconds)
+    }
+
+    @Test
+    fun resetToFirstFocusCycle_resetsSessionCycleAndCompletedCountToFocusReady() {
+        val state = PomodoroUiState(
+            settings = PomodoroSettings(focusMinutes = 30),
+            currentSession = SessionType.SHORT_BREAK,
+            runState = TimerRunState.RUNNING,
+            remainingMillis = 120_000L,
+            totalSessionMillis = 300_000L,
+            currentCycleIndex = 3,
+            completedFocusSessions = 2,
+            isVibrationRippleActive = true
+        )
+
+        val resetState = state.resetToFirstFocusCycle()
+
+        assertEquals(SessionType.FOCUS, resetState.currentSession)
+        assertEquals(TimerRunState.READY, resetState.runState)
+        assertEquals(30 * 60 * 1000L, resetState.remainingMillis)
+        assertEquals(30 * 60 * 1000L, resetState.totalSessionMillis)
+        assertEquals(1, resetState.currentCycleIndex)
+        assertEquals(0, resetState.completedFocusSessions)
+        assertFalse(resetState.isVibrationRippleActive)
     }
 }

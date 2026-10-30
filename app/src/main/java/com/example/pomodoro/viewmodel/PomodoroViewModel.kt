@@ -146,6 +146,18 @@ class PomodoroViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
+     * 포모도로 집중(Focus) 사이클 전체 초기화:
+     * 현재 세션을 Focus #1/N 대기(READY) 상태로 되돌리고 완료된 집중 세션 수를 0으로 리셋
+     */
+    fun resetFocusCycle() {
+        vibrationHelper.vibrateButtonClick()
+        timerJob?.cancel()
+        stopRepeatingVibrationAlert()
+
+        _uiState.update { it.resetToFirstFocusCycle() }
+    }
+
+    /**
      * 다음 세션으로 건너뛰기 (Skip)
      */
     fun skipToNextSession() {

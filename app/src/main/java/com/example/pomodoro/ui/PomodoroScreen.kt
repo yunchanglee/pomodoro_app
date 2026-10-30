@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Vibration
@@ -103,6 +104,7 @@ fun PomodoroScreen(
                 onDismissVibrationAlert = viewModel::stopRepeatingVibrationAlert,
                 onToggleStartPause = viewModel::toggleStartPause,
                 onReset = viewModel::resetCurrentTimer,
+                onResetFocusCycle = viewModel::resetFocusCycle,
                 onSkip = viewModel::skipToNextSession,
                 onSelectSession = viewModel::selectSessionType,
                 onQuickAdjustMinutes = viewModel::adjustRemainingMinutesBy,
@@ -118,6 +120,7 @@ fun PomodoroScreen(
                 onDismissVibrationAlert = viewModel::stopRepeatingVibrationAlert,
                 onToggleStartPause = viewModel::toggleStartPause,
                 onReset = viewModel::resetCurrentTimer,
+                onResetFocusCycle = viewModel::resetFocusCycle,
                 onSkip = viewModel::skipToNextSession,
                 onSelectSession = viewModel::selectSessionType,
                 onQuickAdjustMinutes = viewModel::adjustRemainingMinutesBy,
@@ -130,11 +133,14 @@ fun PomodoroScreen(
         if (uiState.isSettingsSheetOpen) {
             SettingsBottomSheet(
                 settings = uiState.settings,
+                currentCycleIndex = uiState.currentCycleIndex,
+                completedFocusSessions = uiState.completedFocusSessions,
                 accentColor = dynamicColors.primaryAccent,
                 onFocusMinutesChange = viewModel::updateFocusMinutes,
                 onShortBreakMinutesChange = viewModel::updateShortBreakMinutes,
                 onLongBreakMinutesChange = viewModel::updateLongBreakMinutes,
                 onSessionsBeforeLongBreakChange = viewModel::updateSessionsBeforeLongBreak,
+                onResetFocusCycle = viewModel::resetFocusCycle,
                 onToggleAutoStartBreak = viewModel::toggleAutoStartBreak,
                 onToggleAutoStartFocus = viewModel::toggleAutoStartFocus,
                 onToggleCompletionVibration = viewModel::toggleCompletionVibration,
@@ -158,6 +164,7 @@ private fun PortraitSingleColumnLayout(
     onDismissVibrationAlert: () -> Unit,
     onToggleStartPause: () -> Unit,
     onReset: () -> Unit,
+    onResetFocusCycle: () -> Unit,
     onSkip: () -> Unit,
     onSelectSession: (SessionType) -> Unit,
     onQuickAdjustMinutes: (Int) -> Unit,
@@ -172,7 +179,7 @@ private fun PortraitSingleColumnLayout(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. 상단 바 (세션 타이틀, 자동 휴식 퀵 배지, 진동 토글 아이콘, 설정 아이콘)
+        // 1. 상단 바 (세션 타이틀, 사이클 도트, Focus 사이클 초기화 버튼, 진동 토글 아이콘, 설정 아이콘)
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -196,6 +203,10 @@ private fun PortraitSingleColumnLayout(
                         currentCycle = uiState.currentCycleIndex,
                         totalCycles = uiState.settings.sessionsBeforeLongBreak,
                         accentColor = colors.primaryAccent
+                    )
+                    FocusCycleResetChip(
+                        accentColor = colors.primaryAccent,
+                        onClick = onResetFocusCycle
                     )
                 }
 
@@ -311,6 +322,7 @@ private fun LandscapeTwoPaneLayout(
     onDismissVibrationAlert: () -> Unit,
     onToggleStartPause: () -> Unit,
     onReset: () -> Unit,
+    onResetFocusCycle: () -> Unit,
     onSkip: () -> Unit,
     onSelectSession: (SessionType) -> Unit,
     onQuickAdjustMinutes: (Int) -> Unit,
@@ -390,17 +402,26 @@ private fun LandscapeTwoPaneLayout(
                     ) {
                         Column {
                             Text(
-                                text = uiState.currentSession.titleEn,
+                                text = "${uiState.currentSession.titleEn} #${uiState.currentCycleIndex}/${uiState.settings.sessionsBeforeLongBreak}",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TextPrimary
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            SessionCycleDots(
-                                currentCycle = uiState.currentCycleIndex,
-                                totalCycles = uiState.settings.sessionsBeforeLongBreak,
-                                accentColor = colors.primaryAccent
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                SessionCycleDots(
+                                    currentCycle = uiState.currentCycleIndex,
+                                    totalCycles = uiState.settings.sessionsBeforeLongBreak,
+                                    accentColor = colors.primaryAccent
+                                )
+                                FocusCycleResetChip(
+                                    accentColor = colors.primaryAccent,
+                                    onClick = onResetFocusCycle
+                                )
+                            }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -571,6 +592,43 @@ private fun SessionCycleDots(
                     )
             )
         }
+    }
+}
+
+/**
+ * 상단 세션 표시 영역(Focus #1/4 및 사이클 도트 옆)에 배치되는 Focus 사이클 초기화 버튼
+ */
+@Composable
+private fun FocusCycleResetChip(
+    accentColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(SurfaceElevatedBg)
+            .border(
+                width = 1.dp,
+                color = accentColor.copy(alpha = 0.45f),
+                shape = RoundedCornerShape(50)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.RestartAlt,
+            contentDescription = "Focus 사이클 초기화",
+            tint = accentColor,
+            modifier = Modifier.size(13.dp)
+        )
+        Text(
+            text = "Focus 초기화",
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary
+        )
     }
 }
 

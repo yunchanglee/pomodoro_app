@@ -8,13 +8,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -45,11 +50,14 @@ import kotlin.math.roundToInt
 @Composable
 fun SettingsBottomSheet(
     settings: PomodoroSettings,
+    currentCycleIndex: Int,
+    completedFocusSessions: Int,
     accentColor: Color,
     onFocusMinutesChange: (Int) -> Unit,
     onShortBreakMinutesChange: (Int) -> Unit,
     onLongBreakMinutesChange: (Int) -> Unit,
     onSessionsBeforeLongBreakChange: (Int) -> Unit,
+    onResetFocusCycle: () -> Unit,
     onToggleAutoStartBreak: () -> Unit,
     onToggleAutoStartFocus: () -> Unit,
     onToggleCompletionVibration: () -> Unit,
@@ -160,6 +168,47 @@ fun SettingsBottomSheet(
                     ) {
                         Text("+", color = TextPrimary, fontWeight = FontWeight.Bold)
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 포모도로 집중(Focus) 사이클 초기화 액션 행
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                    Text(
+                        text = "Focus 사이클 초기화 (Reset Focus Cycle)",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "현재 #${currentCycleIndex}/${settings.sessionsBeforeLongBreak} (누적 완료 ${completedFocusSessions}회) → Focus #1 대기 상태로 초기화",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+                OutlinedButton(
+                    onClick = onResetFocusCycle,
+                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.RestartAlt,
+                        contentDescription = null,
+                        tint = accentColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Focus 초기화",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
                 }
             }
 
